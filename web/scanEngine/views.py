@@ -8,6 +8,7 @@ from django import http
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.utils.translation import gettext
 from rolepermissions.decorators import has_permission_decorator
 
 from reNgine.common_func import *
@@ -38,7 +39,7 @@ def add_engine(request, slug):
             messages.add_message(
                 request,
                 messages.INFO,
-                'Scan Engine Added successfully')
+                gettext('Scan Engine Added successfully'))
             return http.HttpResponseRedirect(reverse('scan_engine_index', kwargs={'slug': slug}))
     context = {
         'scan_engine_nav_active': 'active',
@@ -56,13 +57,13 @@ def delete_engine(request, slug, id):
         messages.add_message(
             request,
             messages.INFO,
-            'Engine successfully deleted!')
+            gettext('Engine successfully deleted!'))
     else:
         responseData = {'status': 'false'}
         messages.add_message(
             request,
             messages.ERROR,
-            'Oops! Engine could not be deleted!')
+            gettext('Oops! Engine could not be deleted!'))
     return http.JsonResponse(responseData)
 
 
@@ -81,7 +82,7 @@ def update_engine(request, slug, id):
             messages.add_message(
                 request,
                 messages.INFO,
-                'Engine edited successfully')
+                gettext('Engine edited successfully'))
             return http.HttpResponseRedirect(reverse('scan_engine_index', kwargs={'slug': slug}))
     context = {
         'scan_engine_nav_active': 'active',
@@ -121,8 +122,7 @@ def add_wordlist(request, slug):
                 messages.add_message(
                     request,
                     messages.INFO,
-                    'Wordlist ' + form.cleaned_data['name'] +
-                    ' added successfully')
+                    gettext('Wordlist %(wlistName)s added successfully') % {"wlistName": form.cleaned_data['name']})
                 return http.HttpResponseRedirect(reverse('wordlist_list', kwargs={'slug': slug}))
     context['form'] = form
     return render(request, 'scanEngine/wordlist/add.html', context)
@@ -141,13 +141,13 @@ def delete_wordlist(request, slug, id):
         messages.add_message(
             request,
             messages.INFO,
-            'Wordlist successfully deleted!')
+            gettext('Wordlist successfully deleted!'))
     else:
         responseData = {'status': 'false'}
         messages.add_message(
             request,
             messages.ERROR,
-            'Oops! Wordlist could not be deleted!')
+            gettext('Oops! Wordlist could not be deleted!'))
     return http.JsonResponse(responseData)
 
 
@@ -175,7 +175,7 @@ def interesting_lookup(request, slug):
             messages.add_message(
                 request,
                 messages.INFO,
-                'Lookup Keywords updated successfully')
+                gettext('Lookup Keywords updated successfully'))
             return http.HttpResponseRedirect(reverse('interesting_lookup', kwargs={'slug': slug}))
 
     if lookup_keywords:
@@ -197,7 +197,7 @@ def tool_specific_settings(request, slug):
             gf_file = request.FILES['gfFileUpload']
             file_extension = gf_file.name.split('.')[len(gf_file.name.split('.'))-1]
             if file_extension != 'json':
-                messages.add_message(request, messages.ERROR, 'Invalid GF Pattern, upload only *.json extension')
+                messages.add_message(request, messages.ERROR, gettext('Invalid GF Pattern, upload only *.json extension'))
             else:
                 # remove special chars from filename, that could possibly do directory traversal or XSS
                 filename = re.sub(r'[\\/*?:"<>|]',"", gf_file.name)
@@ -205,51 +205,51 @@ def tool_specific_settings(request, slug):
                 file = open(file_path, "w")
                 file.write(gf_file.read().decode("utf-8"))
                 file.close()
-                messages.add_message(request, messages.INFO, 'Pattern {} successfully uploaded'.format(gf_file.name[:4]))
+                messages.add_message(request, messages.INFO, gettext('GF Pattern %(patternName)s successfully uploaded') % {'patternName': gf_file.name[:4]})
             return http.HttpResponseRedirect(reverse('tool_settings', kwargs={'slug': slug}))
 
         elif 'nucleiFileUpload' in request.FILES:
             nuclei_file = request.FILES['nucleiFileUpload']
             file_extension = nuclei_file.name.split('.')[len(nuclei_file.name.split('.'))-1]
             if file_extension != 'yaml':
-                messages.add_message(request, messages.ERROR, 'Invalid Nuclei Pattern, upload only *.yaml extension')
+                messages.add_message(request, messages.ERROR, gettext('Invalid Nuclei Pattern, upload only *.yaml extension'))
             else:
                 filename = re.sub(r'[\\/*?:"<>|]',"", nuclei_file.name)
                 file_path = Path.home() / 'nuclei-templates/' + filename
                 file = open(file_path, "w")
                 file.write(nuclei_file.read().decode("utf-8"))
                 file.close()
-                messages.add_message(request, messages.INFO, 'Nuclei Pattern {} successfully uploaded'.format(nuclei_file.name[:-5]))
+                messages.add_message(request, messages.INFO, gettext('Nuclei Pattern %(patternName)s successfully uploaded') % {'patternName': nuclei_file.name[:-5]})
             return http.HttpResponseRedirect(reverse('tool_settings', kwargs={'slug': slug}))
 
         elif 'nuclei_config_text_area' in request.POST:
             with open(Path.home() / '.config' / 'nuclei' / 'config.yaml', "w") as fhandle:
                 fhandle.write(request.POST.get('nuclei_config_text_area'))
-            messages.add_message(request, messages.INFO, 'Nuclei config updated!')
+            messages.add_message(request, messages.INFO, gettext('Nuclei config updated!'))
             return http.HttpResponseRedirect(reverse('tool_settings', kwargs={'slug': slug}))
 
         elif 'subfinder_config_text_area' in request.POST:
             with open(Path.home() / '.config' / 'subfinder' / 'config.yaml', "w") as fhandle:
                 fhandle.write(request.POST.get('subfinder_config_text_area'))
-            messages.add_message(request, messages.INFO, 'Subfinder config updated!')
+            messages.add_message(request, messages.INFO, gettext('Subfinder config updated!'))
             return http.HttpResponseRedirect(reverse('tool_settings', kwargs={'slug': slug}))
 
         elif 'naabu_config_text_area' in request.POST:
             with open(Path.home() / '.config' / 'naabu' / 'config.yaml', "w") as fhandle:
                 fhandle.write(request.POST.get('naabu_config_text_area'))
-            messages.add_message(request, messages.INFO, 'Naabu config updated!')
+            messages.add_message(request, messages.INFO, gettext('Naabu config updated!'))
             return http.HttpResponseRedirect(reverse('tool_settings', kwargs={'slug': slug}))
 
         elif 'amass_config_text_area' in request.POST:
             with open(Path.home() / '.config' / 'amass.ini', "w") as fhandle:
                 fhandle.write(request.POST.get('amass_config_text_area'))
-            messages.add_message(request, messages.INFO, 'Amass config updated!')
+            messages.add_message(request, messages.INFO, gettext('Amass config updated!'))
             return http.HttpResponseRedirect(reverse('tool_settings', kwargs={'slug': slug}))
 
         elif 'theharvester_config_text_area' in request.POST:
             with open(Path(RENGINE_TOOL_GITHUB_PATH) / 'theHarvester' / 'api-keys.yaml', "w") as fhandle:
                 fhandle.write(request.POST.get('theharvester_config_text_area'))
-            messages.add_message(request, messages.INFO, 'theHarvester config updated!')
+            messages.add_message(request, messages.INFO, gettext('theHarvester config updated!'))
             return http.HttpResponseRedirect(reverse('tool_settings', kwargs={'slug': slug}))
 
     context['settings_nav_active'] = 'active'
@@ -300,13 +300,13 @@ def notification_settings(request, slug):
 
         if form.is_valid():
             form.save()
-            send_slack_message('*reNgine*\nCongratulations! your notification services are working.')
-            send_telegram_message('*reNgine*\nCongratulations! your notification services are working.')
-            send_discord_message('**reNgine**\nCongratulations! your notification services are working.')
+            send_slack_message(gettext('*reNgine*\nCongratulations! your notification services are working.'))
+            send_telegram_message(gettext('*reNgine*\nCongratulations! your notification services are working.'))
+            send_discord_message(gettext('**reNgine**\nCongratulations! your notification services are working.'))
             messages.add_message(
                 request,
                 messages.INFO,
-                'Notification Settings updated successfully and test message was sent.')
+                gettext('Notification Settings updated successfully and test message was sent.'))
             return http.HttpResponseRedirect(reverse('notification_settings', kwargs={'slug': slug}))
 
     context['settings_nav_active'] = 'active'
@@ -341,7 +341,7 @@ def proxy_settings(request, slug):
             messages.add_message(
                 request,
                 messages.INFO,
-                'Proxies updated.')
+                gettext('Proxies updated.'))
             return http.HttpResponseRedirect(reverse('proxy_settings', kwargs={'slug': slug}))
     context['settings_nav_active'] = 'active'
     context['proxy_settings_li'] = 'active'
@@ -393,7 +393,7 @@ def hackerone_settings(request, slug):
             messages.add_message(
                 request,
                 messages.INFO,
-                'Hackerone Settings updated.')
+                gettext('Hackerone Settings updated.'))
             return http.HttpResponseRedirect(reverse('hackerone_settings', kwargs={'slug': slug}))
     context['settings_nav_active'] = 'active'
     context['hackerone_settings_li'] = 'active'
@@ -431,7 +431,7 @@ def report_settings(request, slug):
             messages.add_message(
                 request,
                 messages.INFO,
-                'Report Settings updated.')
+                gettext('Report Settings updated.'))
             return http.HttpResponseRedirect(reverse('report_settings', kwargs={'slug': slug}))
 
 
@@ -510,7 +510,7 @@ def add_tool(request, slug):
             messages.add_message(
                 request,
                 messages.INFO,
-                'External Tool Successfully Added!')
+                gettext('External Tool Successfully Added!'))
             return http.HttpResponseRedirect(reverse('tool_arsenal', kwargs={'slug': slug}))
     context = {
             'settings_nav_active': 'active',
@@ -530,7 +530,7 @@ def modify_tool_in_arsenal(request, slug, id):
             messages.add_message(
                 request,
                 messages.INFO,
-                'Tool modified successfully')
+                gettext('Tool modified successfully'))
             return http.HttpResponseRedirect(reverse('tool_arsenal', kwargs={'slug': slug}))
     else:
         form.set_value(external_tool)

@@ -22,6 +22,7 @@ from celery.utils.log import get_task_logger
 from django.db.models import Count
 from dotted_dict import DottedDict
 from django.utils import timezone
+from django.utils.translation import gettext
 from pycvesearch import CVESearch
 from metafinder.extractor import extract_metadata_from_google_search
 
@@ -180,16 +181,16 @@ def initiate_scan(
 	#													  waf_detection
 	workflow = chain(
 		group(
-			subdomain_discovery.si(ctx=ctx, description='Subdomain discovery'),
-			osint.si(ctx=ctx, description='OS Intelligence')
+			subdomain_discovery.si(ctx=ctx, description=gettext('Subdomain discovery')),
+			osint.si(ctx=ctx, description=gettext('OS Intelligence'))
 		),
-		port_scan.si(ctx=ctx, description='Port scan'),
-		fetch_url.si(ctx=ctx, description='Fetch URL'),
+		port_scan.si(ctx=ctx, description=gettext('Port scan')),
+		fetch_url.si(ctx=ctx, description=gettext('Fetch URL')),
 		group(
-			dir_file_fuzz.si(ctx=ctx, description='Directories & files fuzz'),
-			vulnerability_scan.si(ctx=ctx, description='Vulnerability scan'),
-			screenshot.si(ctx=ctx, description='Screenshot'),
-			waf_detection.si(ctx=ctx, description='WAF detection')
+			dir_file_fuzz.si(ctx=ctx, description=gettext('Directories & files fuzz')),
+			vulnerability_scan.si(ctx=ctx, description=gettext('Vulnerability scan')),
+			screenshot.si(ctx=ctx, description=gettext('Screenshot')),
+			waf_detection.si(ctx=ctx, description=gettext('WAF detection'))
 		)
 	)
 
@@ -2009,7 +2010,7 @@ def vulnerability_scan(self, urls=[], ctx={}, description=None):
 		_task = nuclei_scan.si(
 			urls=urls,
 			ctx=ctx,
-			description=f'Nuclei Scan'
+			description=gettext('Nuclei Scan')
 		)
 		grouped_tasks.append(_task)
 
@@ -2017,7 +2018,7 @@ def vulnerability_scan(self, urls=[], ctx={}, description=None):
 		_task = crlfuzz_scan.si(
 			urls=urls,
 			ctx=ctx,
-			description=f'CRLFuzz Scan'
+			description=gettext('CRLFuzz Scan')
 		)
 		grouped_tasks.append(_task)
 
@@ -2025,14 +2026,14 @@ def vulnerability_scan(self, urls=[], ctx={}, description=None):
 		_task = dalfox_xss_scan.si(
 			urls=urls,
 			ctx=ctx,
-			description=f'Dalfox XSS Scan'
+			description=gettext('Dalfox XSS Scan')
 		)
 		grouped_tasks.append(_task)
 
 	if should_run_s3scanner:
 		_task = s3scanner.si(
 			ctx=ctx,
-			description=f'Misconfigured S3 Buckets Scanner'
+			description=gettext('Misconfigured S3 Buckets Scanner')
 		)
 		grouped_tasks.append(_task)
 
@@ -2412,7 +2413,7 @@ def nuclei_scan(self, urls=[], ctx={}, description=None):
 			enable_http_crawl,
 			should_fetch_gpt_report,
 			ctx=custom_ctx,
-			description=f'Nuclei Scan with severity {severity}'
+			description=gettext('Nuclei Scan with severity %(severity)s') % {'severity': severity}
 		)
 		grouped_tasks.append(_task)
 
@@ -3151,6 +3152,10 @@ def send_hackerone_report(vulnerability_id):
 				  "vulnerability_information": tpl,
 				  "severity_rating": severity_value,
 				  "impact": "More information about the impact and vulnerability can be found here: \n" + vulnerability.reference if vulnerability.reference else "NA",
+
+				# Probably don't want this translated but who knows
+				#  "title": _('%(vulnName)s found in %(url)s') % {'vulnName': vulnerability.name, 'url': vulnerability.http_url},
+				#  "impact": _("More information about the impact and vulnerability can be found here: \n") + vulnerability.reference if vulnerability.reference else "NA",
 				}
 			  }
 			}
@@ -3509,13 +3514,13 @@ def parse_dalfox_result(line):
 	"""
 
 	description = ''
-	description += f" Evidence: {line.get('evidence')} <br>" if line.get('evidence') else ''
-	description += f" Message: {line.get('message')} <br>" if line.get('message') else ''
-	description += f" Payload: {line.get('message_str')} <br>" if line.get('message_str') else ''
-	description += f" Vulnerable Parameter: {line.get('param')} <br>" if line.get('param') else ''
+	description += (gettext(" Evidence: %(evidence)s <br>") % {"evidence": line.get('evidence')}) if line.get('evidence') else ''
+	description += (gettext(" Message: %(msg)s <br>") % {"msg": line.get('message')}) if line.get('message') else ''
+	description += (gettext(" Payload: %(payload)s <br>") % {"payload": line.get('message_str')}) if line.get('message_str') else ''
+	description += (gettext(" Vulnerable Parameter: %(vulnParam)s <br>") % {"vulnParam": line.get('param')}) if line.get('param') else ''
 
 	return {
-		'name': 'XSS (Cross Site Scripting)',
+		'name': gettext('XSS (Cross Site Scripting)'),
 		'type': 'XSS',
 		'severity': DALFOX_SEVERITY_MAP[line.get('severity', 'unknown')],
 		'description': description,
@@ -3535,10 +3540,10 @@ def parse_crlfuzz_result(url):
 	"""
 
 	return {
-		'name': 'CRLF (HTTP Response Splitting)',
+		'name': gettext('CRLF (HTTP Response Splitting)'),
 		'type': 'CRLF',
 		'severity': 2,
-		'description': 'A CRLF (HTTP Response Splitting) vulnerability has been discovered.',
+		'description': gettext('A CRLF (HTTP Response Splitting) vulnerability has been discovered.'),
 		'source': CRLFUZZ,
 	}
 
@@ -3761,8 +3766,8 @@ def query_whois(ip_domain, force_reload_whois=False):
 			return {
 				'status': False,
 				'ip_domain': ip_domain,
-				'result': "Netlas limit exceeded.",
-				'message': 'Netlas limit exceeded.'
+				'result': gettext("Netlas limit exceeded."),
+				'message': gettext('Netlas limit exceeded.')
 			}
 		try:
 			result = json.loads(result)
@@ -3957,7 +3962,7 @@ def query_whois(ip_domain, force_reload_whois=False):
 			return {
 				'status': False,
 				'ip_domain': ip_domain,
-				'result': "unable to fetch records from WHOIS database.",
+				'result': gettext("unable to fetch records from WHOIS database."),
 				'message': str(e)
 			}
 
