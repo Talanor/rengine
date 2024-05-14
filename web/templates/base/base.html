@@ -62,6 +62,7 @@
     <!-- Topbar begins -->
     {% include 'base/_items/top_bar.html' %}
     {# topbar ends #}
+    <div id="wrapper"></div>
     {# top nav begins #}
     {% include 'base/_items/top_nav.html' %}
     {# top nav ends #}
@@ -92,6 +93,8 @@
       {% include 'base/_items/offcanvas.html' %}
     </div>
     {% include 'base/_items/right_bar.html' %}
+    {% include 'base/_items/footer.html' %}
+    </div>
     <script src="{% url 'javascript-catalog' %}"></script>
     <script src="{% static 'assets/js/vendor.min.js' %}"></script>
     <script src="https://unpkg.com/@popperjs/core@2"></script>

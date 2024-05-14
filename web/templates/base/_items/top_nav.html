@@ -1,7 +1,6 @@
 {% load permission_tags %}
 {% load i18n %}
 
-<div id="wrapper">
 <div class="topnav">
   <div class="container-fluid">
     <nav class="navbar navbar-light navbar-expand-lg topnav-menu">
@@ -83,6 +82,7 @@
               {% endif %}
               {% if user|can:'modify_system_configurations' %}
               <a href="{% url 'api_vault' current_project.slug %}" class="dropdown-item">{% translate "API Vault" %}</a>
+              <a href="{% url 'llm_toolkit' current_project.slug %}" class="dropdown-item">{% translate "LLM Toolkit" %}</a>
               <a href="{% url 'tool_arsenal' current_project.slug %}" class="dropdown-item">{% translate "Tools Arsenal" %}</a>
               {% endif %}
               {% if user|can:'modify_scan_report' %}

@@ -84,8 +84,29 @@ services:
     depends_on:
       - db
       - celery
+      - celery-beat
     networks:
       - rengine_network
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    # ports:
+    #   - "11434:11434"
+    networks:
+      - rengine_network
+    restart: always
+    # command: ["ollama", "run", "llama2-uncensored"]
 
 networks:
   rengine_network:
+volumes:
+  tool_config:
+  postgres_data:
+  gf_patterns:
+  nuclei_templates:
+  github_repos:
+  wordlist:
+  scan_results:
+  ollama_data:

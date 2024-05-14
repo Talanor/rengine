@@ -1780,10 +1780,15 @@ function show_quick_add_target_modal() {
 			<label for="target_description_modal" class="form-label">` + gettext("Description (Optional)") + `</label>
 			<input class="form-control" type="text" id="target_description_modal" required="" placeholder="` + gettext("Target Description") + `">
 		</div>
-
+		
 		<div class="mb-3">
 			<label for="h1_handle_modal" class="form-label">` + gettext("Hackerone Target Team Handle (Optional)") + `</label>
 			<input class="form-control" type="text" id="h1_handle_modal" placeholder="` + gettext("hackerone.com/team_handle, Only enter team_handle after /") + `">
+		</div>
+
+		<div class="mb-3">
+			<label for="target_organization_modal" class="form-label">Target Organization (Optional)</label>
+			<input class="form-control" type="text" id="target_organization_modal" placeholder="Target Org">
 		</div>
 
 		<div class="mb-3 text-center">
@@ -1800,11 +1805,12 @@ function add_quick_target() {
 	var domain_name = $('#target_name_modal').val();
 	var description = $('#target_description_modal').val();
 	var h1_handle = $('#h1_handle_modal').val();
-	add_target(domain_name, h1_handle = h1_handle, description = description);
+	var organization = $('#target_organization_modal').val();
+	add_target(domain_name, h1_handle = h1_handle, description = description, organization = organization);
 }
 
 
-function add_target(domain_name, h1_handle = null, description = null) {
+function add_target(domain_name, h1_handle = null, description = null, organization = null) {
 	var current_slug = getCurrentProjectSlug();
 	// this function will add domain_name as target
 	console.log('Adding new target ' + domain_name)
@@ -1813,6 +1819,7 @@ function add_target(domain_name, h1_handle = null, description = null) {
 		'domain_name': domain_name,
 		'h1_team_handle': h1_handle,
 		'description': description,
+		'organization': organization,
 		'slug': current_slug
 	};
 	swal.queue([{

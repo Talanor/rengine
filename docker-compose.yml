@@ -7,6 +7,8 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_PORT=${POSTGRES_PORT}
+    ports:
+      - "127.0.0.1:5432:5432"
     volumes:
       - ./data/postgres_data:/var/lib/postgresql/data/
     networks:
@@ -86,18 +88,21 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_PORT=${POSTGRES_PORT}
       - POSTGRES_HOST=${POSTGRES_HOST}
+      - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
       # THIS IS A MUST FOR CHECKING UPDATE, EVERYTIME A COMMIT IS MERGED INTO
       # MASTER, UPDATE THIS!!! MAJOR.MINOR.PATCH https://semver.org/
       - RENGINE_CURRENT_VERSION='2.0.6'
     volumes:
       - ./web:/home/rengine/app
-      # - ./data/static_volume:/usr/src/app/staticfiles/
-      # - ./data/github_repos:/usr/src/github
-      # - ./data/wordlist:/usr/src/wordlist
-      # - ./data/scan_results:/usr/src/scan_results
-      # - ./data/gf_patterns:/root/.gf
-      # - ./data/nuclei_templates:/root/nuclei-templates
-      # - ./datatool_config:/root/.config
+      # - github_repos:/usr/src/github
+      # - wordlist:/usr/src/wordlist
+      # - scan_results:/usr/src/scan_results
+      # - gf_patterns:/root/.gf
+      # - nuclei_templates:/root/nuclei-templates
+      # - tool_config:/root/.config
+      # - static_volume:/usr/src/app/staticfiles/
+    ports:
+      - "8000:8000"
     depends_on:
       - db
       - celery
@@ -127,9 +132,29 @@ services:
       - ./scan_results:/usr/src/scan_results
     networks:
       - rengine_network
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    networks:
+      - rengine_network
 
 networks:
   rengine_network:
+
+volumes:
+  tool_config:
+  postgres_data:
+  gf_patterns:
+  nuclei_templates:
+  github_repos:
+  wordlist:
+  scan_results:
+  static_volume:
+  ollama_data:
 
 secrets:
   proxy.ca:

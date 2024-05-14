@@ -81,6 +81,7 @@
               <th>{% translate "Summary" %}</th>
               <th class="">{% translate "Scan Engine Used" %}</th>
               <th>{% translate "Last Scan" %}</th>
+              <th>{% translate "Initiated By" %}</th>
               <th class="text-center">{% translate "Status" %}</th>
               <th class="text-center">{% translate "Progress" %}</th>
               <th class="text-center no-sorting">{% translate "Action" %}</th>
@@ -109,6 +110,9 @@
               <td>
                 <span data-toggle="tooltip" data-placement="top" title="{{scan_history.start_scan_date}}">{{ scan_history.start_scan_date|naturaltime}}</span>
               </td>
+              <td>
+                <span class="badge badge-soft-secondary">{{scan_history.initiated_by.username}}</span>
+              </td>
               <td class="text-center">
                 {% if scan_history.scan_status == -1 %}
                 <span class="badge badge-soft-warning" data-placement="top" data-toggle="tooltip" data-placement="top" title="{% translate 'Waiting for other scans to complete' %}"><span class="spinner-border spinner-border-sm"></span> {% translate 'Pending' %}</span>
@@ -121,6 +125,8 @@
                 <span class="badge badge-soft-success">{% translate 'Successful' %}</span>
                 {% elif scan_history.scan_status == 3 %}
                 <span class="badge badge-soft-danger">{% translate 'Aborted' %}</span>
+                <br>
+                <small class="text-muted">{% blocktranslate with abortedBy=scan_history.aborted_by %}Aborted by: {{ abortedBy }}{% endblocktranslate %}</small>
                 {% else %}
                 <span class="badge badge-soft-danger">{% translate 'Unknown' %}</span>
                 {% endif %}
