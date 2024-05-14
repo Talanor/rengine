@@ -4,6 +4,7 @@ FROM --platform=$BUILDPLATFORM python:3.10-alpine
 LABEL \
     name="reNgine" \
     author="Yogesh Ojha <yogesh.ojha11@gmail.com>" \
+    maintainer="Talanor <q.poirier@astar.services>" \
     description="reNgine is a automated pipeline of recon process, useful for information gathering during web application penetration testing."
 
 # Environment Variables

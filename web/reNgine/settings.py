@@ -29,6 +29,10 @@ RENGINE_WORDLISTS = env('RENGINE_WORDLISTS', default=str(Path.home() / 'wordlist
 RENGINE_TOOL_PATH = env('RENGINE_TOOL_PATH', default=str(Path.home() / 'tools'))
 RENGINE_TOOL_GITHUB_PATH = env('RENGINE_TOOL_GITHUB_PATH', default=str(Path(RENGINE_TOOL_PATH) / '.github.com'))
 
+# Could just be defined here, but who knows what other process might make use of this
+with open(Path(RENGINE_HOME) / 'reNgine' / 'version.txt', 'r', encoding='utf-8') as f:
+    RENGINE_CURRENT_VERSION = f.read().strip()
+
 RENGINE_CACHE_ENABLED = env.bool('RENGINE_CACHE_ENABLED', default=False)
 RENGINE_RECORD_ENABLED = env.bool('RENGINE_RECORD_ENABLED', default=True)
 RENGINE_RAISE_ON_ERROR = env.bool('RENGINE_RAISE_ON_ERROR', default=False)
