@@ -74,139 +74,139 @@ def initiate_scan(
 		url_filter (str): URL path. Default: ''
 	"""
 
-	# Get scan history
-	scan = ScanHistory.objects.get(pk=scan_history_id)
-
-	# Get scan engine
-	engine_id = engine_id or scan.scan_type.id # scan history engine_id
-	engine = EngineType.objects.get(pk=engine_id)
-
-	# Get YAML config
-	config = yaml.safe_load(engine.yaml_configuration)
-	enable_http_crawl = config.get(ENABLE_HTTP_CRAWL, DEFAULT_ENABLE_HTTP_CRAWL)
-	gf_patterns = config.get(GF_PATTERNS, [])
-
-	# Get domain and set last_scan_date
-	domain = Domain.objects.get(pk=domain_id)
-	domain.last_scan_date = timezone.now()
-	domain.save()
-
-	# Get path filter
-	url_filter = url_filter.rstrip('/')
-
-	# Get or create ScanHistory() object
-	if scan_type == LIVE_SCAN: # immediate
-		scan = ScanHistory.objects.get(pk=scan_history_id)
-		scan.scan_status = RUNNING_TASK
-	elif scan_type == SCHEDULED_SCAN: # scheduled
-		scan = ScanHistory()
-		scan.scan_status = INITIATED_TASK
-	scan.scan_type = engine
-	scan.celery_ids = [initiate_scan.request.id]
-	scan.domain = domain
-	scan.start_scan_date = timezone.now()
-	scan.tasks = engine.tasks
-	scan.results_dir = f'{results_dir}/{domain.name}_{scan.id}'
-	add_gf_patterns = gf_patterns and 'fetch_url' in engine.tasks
-	if add_gf_patterns:
-		scan.used_gf_patterns = ','.join(gf_patterns)
-	scan.save()
-
 	try:
+		# Get scan history
+		scan = ScanHistory.objects.get(pk=scan_history_id)
+
+		# Get scan engine
+		engine_id = engine_id or scan.scan_type.id # scan history engine_id
+		engine = EngineType.objects.get(pk=engine_id)
+
+		# Get YAML config
+		config = yaml.safe_load(engine.yaml_configuration)
+		enable_http_crawl = config.get(ENABLE_HTTP_CRAWL, DEFAULT_ENABLE_HTTP_CRAWL)
+		gf_patterns = config.get(GF_PATTERNS, [])
+
+		# Get domain and set last_scan_date
+		domain = Domain.objects.get(pk=domain_id)
+		domain.last_scan_date = timezone.now()
+		domain.save()
+
+		# Get path filter
+		url_filter = url_filter.rstrip('/')
+
+		# Get or create ScanHistory() object
+		if scan_type == LIVE_SCAN: # immediate
+			scan = ScanHistory.objects.get(pk=scan_history_id)
+			scan.scan_status = RUNNING_TASK
+		elif scan_type == SCHEDULED_SCAN: # scheduled
+			scan = ScanHistory()
+			scan.scan_status = INITIATED_TASK
+		scan.scan_type = engine
+		scan.celery_ids = [initiate_scan.request.id]
+		scan.domain = domain
+		scan.start_scan_date = timezone.now()
+		scan.tasks = engine.tasks
+		scan.results_dir = f'{results_dir}/{domain.name}_{scan.id}'
+		add_gf_patterns = gf_patterns and 'fetch_url' in engine.tasks
+		if add_gf_patterns:
+			scan.used_gf_patterns = ','.join(gf_patterns)
+		scan.save()
+
 		os.makedirs(scan.results_dir, exist_ok=True)
+
+		# Build task context
+		ctx = {
+			'scan_history_id': scan_history_id,
+			'engine_id': engine_id,
+			'domain_id': domain.id,
+			'results_dir': scan.results_dir,
+			'url_filter': url_filter,
+			'yaml_configuration': config,
+			'out_of_scope_subdomains': out_of_scope_subdomains
+		}
+		ctx_str = json.dumps(ctx, indent=2)
+
+		# Send start notif
+		logger.warning(f'Starting scan {scan_history_id} with context:\n{ctx_str}')
+		send_scan_notif.delay(
+			scan_history_id,
+			subscan_id=None,
+			engine_id=engine_id,
+			status=CELERY_TASK_STATUS_MAP[scan.scan_status])
+
+		# Save imported subdomains in DB
+		save_imported_subdomains(imported_subdomains, ctx=ctx)
+
+		# Create initial subdomain in DB: make a copy of domain as a subdomain so
+		# that other tasks using subdomains can use it.
+		subdomain_name = domain.name
+		subdomain, _ = save_subdomain(subdomain_name, ctx=ctx)
+
+		# If enable_http_crawl is set, create an initial root HTTP endpoint so that
+		# HTTP crawling can start somewhere
+		http_url = f'{domain.name}{url_filter}' if url_filter else domain.name
+		endpoint, _ = save_endpoint(
+			http_url,
+			ctx=ctx,
+			crawl=enable_http_crawl,
+			is_default=True,
+			subdomain=subdomain
+		)
+		if endpoint and endpoint.is_alive:
+			# TODO: add `root_endpoint` property to subdomain and simply do
+			# subdomain.root_endpoint = endpoint instead
+			logger.warning(f'Found subdomain root HTTP URL {endpoint.http_url}')
+			subdomain.http_url = endpoint.http_url
+			subdomain.http_status = endpoint.http_status
+			subdomain.response_time = endpoint.response_time
+			subdomain.page_title = endpoint.page_title
+			subdomain.content_type = endpoint.content_type
+			subdomain.content_length = endpoint.content_length
+			for tech in endpoint.techs.all():
+				subdomain.technologies.add(tech)
+			subdomain.save()
+
+
+		# Build Celery tasks, crafted according to the dependency graph below:
+		# subdomain_discovery --> port_scan --> fetch_url --> dir_file_fuzz
+		# osint								             	  vulnerability_scan
+		# osint								             	  dalfox xss scan
+		#						 	   		         	  	  screenshot
+		#													  waf_detection
+		workflow = chain(
+			group(
+				subdomain_discovery.si(ctx=ctx, description=gettext('Subdomain discovery')),
+				osint.si(ctx=ctx, description=gettext('OS Intelligence'))
+			),
+			port_scan.si(ctx=ctx, description=gettext('Port scan')),
+			fetch_url.si(ctx=ctx, description=gettext('Fetch URL')),
+			group(
+				dir_file_fuzz.si(ctx=ctx, description=gettext('Directories & files fuzz')),
+				vulnerability_scan.si(ctx=ctx, description=gettext('Vulnerability scan')),
+				screenshot.si(ctx=ctx, description=gettext('Screenshot')),
+				waf_detection.si(ctx=ctx, description=gettext('WAF detection'))
+			)
+		)
+
+		# Build callback
+		callback = report.si(ctx=ctx).set(link_error=[report.si(ctx=ctx)])
+
+		# Run Celery chord
+		logger.info(f'Running Celery workflow with {len(workflow.tasks) + 1} tasks')
+		task = chain(workflow, callback).on_error(callback).delay()
+		scan.celery_ids.append(task.id)
+		scan.save()
+
+		return {
+			'success': True,
+			'task_id': task.id
+		}
 	except:
 		import traceback
 
 		traceback.print_exc()
 		raise
-
-	# Build task context
-	ctx = {
-		'scan_history_id': scan_history_id,
-		'engine_id': engine_id,
-		'domain_id': domain.id,
-		'results_dir': scan.results_dir,
-		'url_filter': url_filter,
-		'yaml_configuration': config,
-		'out_of_scope_subdomains': out_of_scope_subdomains
-	}
-	ctx_str = json.dumps(ctx, indent=2)
-
-	# Send start notif
-	logger.warning(f'Starting scan {scan_history_id} with context:\n{ctx_str}')
-	send_scan_notif.delay(
-		scan_history_id,
-		subscan_id=None,
-		engine_id=engine_id,
-		status=CELERY_TASK_STATUS_MAP[scan.scan_status])
-
-	# Save imported subdomains in DB
-	save_imported_subdomains(imported_subdomains, ctx=ctx)
-
-	# Create initial subdomain in DB: make a copy of domain as a subdomain so
-	# that other tasks using subdomains can use it.
-	subdomain_name = domain.name
-	subdomain, _ = save_subdomain(subdomain_name, ctx=ctx)
-
-	# If enable_http_crawl is set, create an initial root HTTP endpoint so that
-	# HTTP crawling can start somewhere
-	http_url = f'{domain.name}{url_filter}' if url_filter else domain.name
-	endpoint, _ = save_endpoint(
-		http_url,
-		ctx=ctx,
-		crawl=enable_http_crawl,
-		is_default=True,
-		subdomain=subdomain
-	)
-	if endpoint and endpoint.is_alive:
-		# TODO: add `root_endpoint` property to subdomain and simply do
-		# subdomain.root_endpoint = endpoint instead
-		logger.warning(f'Found subdomain root HTTP URL {endpoint.http_url}')
-		subdomain.http_url = endpoint.http_url
-		subdomain.http_status = endpoint.http_status
-		subdomain.response_time = endpoint.response_time
-		subdomain.page_title = endpoint.page_title
-		subdomain.content_type = endpoint.content_type
-		subdomain.content_length = endpoint.content_length
-		for tech in endpoint.techs.all():
-			subdomain.technologies.add(tech)
-		subdomain.save()
-
-
-	# Build Celery tasks, crafted according to the dependency graph below:
-	# subdomain_discovery --> port_scan --> fetch_url --> dir_file_fuzz
-	# osint								             	  vulnerability_scan
-	# osint								             	  dalfox xss scan
-	#						 	   		         	  	  screenshot
-	#													  waf_detection
-	workflow = chain(
-		group(
-			subdomain_discovery.si(ctx=ctx, description=gettext('Subdomain discovery')),
-			osint.si(ctx=ctx, description=gettext('OS Intelligence'))
-		),
-		port_scan.si(ctx=ctx, description=gettext('Port scan')),
-		fetch_url.si(ctx=ctx, description=gettext('Fetch URL')),
-		group(
-			dir_file_fuzz.si(ctx=ctx, description=gettext('Directories & files fuzz')),
-			vulnerability_scan.si(ctx=ctx, description=gettext('Vulnerability scan')),
-			screenshot.si(ctx=ctx, description=gettext('Screenshot')),
-			waf_detection.si(ctx=ctx, description=gettext('WAF detection'))
-		)
-	)
-
-	# Build callback
-	callback = report.si(ctx=ctx).set(link_error=[report.si(ctx=ctx)])
-
-	# Run Celery chord
-	logger.info(f'Running Celery workflow with {len(workflow.tasks) + 1} tasks')
-	task = chain(workflow, callback).on_error(callback).delay()
-	scan.celery_ids.append(task.id)
-	scan.save()
-
-	return {
-		'success': True,
-		'task_id': task.id
-	}
 
 
 @app.task(name='initiate_subscan', bind=False, queue='subscan_queue')
@@ -387,6 +387,7 @@ def subdomain_discovery(
 	Returns:
 		subdomains (list): List of subdomain names.
 	"""
+	logger.debug("SUBDOMAIN_DISCOVERY")
 	if not host:
 		host = self.subdomain.name if self.subdomain else self.domain.name
 
@@ -497,6 +498,8 @@ def subdomain_discovery(
 				f'Subdomain discovery tool "{tool}" is not supported by reNgine. Skipping.')
 			continue
 
+		logger.debug("SUBDOMAIN_DISCOVERY : COMMAND")
+		logger.debug(cmd)
 		# Run tool
 		try:
 			run_command(

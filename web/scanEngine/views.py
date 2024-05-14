@@ -465,11 +465,12 @@ def llm_toolkit_section(request, slug):
         models = response.json()
         ollama_models = models.get('models')
         date_format = "%Y-%m-%dT%H:%M:%S"
-        for model in ollama_models:
-           all_models.append({**model, 
-                'modified_at': datetime.strptime(model['modified_at'].split('.')[0], date_format),
-                'is_local': True,
-            })
+        if ollama_models:
+            for model in ollama_models:
+                all_models.append({**model, 
+                    'modified_at': datetime.strptime(model['modified_at'].split('.')[0], date_format),
+                    'is_local': True,
+                })
     # find selected model name from db
     selected_model = OllamaSettings.objects.first()
     if selected_model:
@@ -485,6 +486,7 @@ def llm_toolkit_section(request, slug):
     openai_key = get_open_ai_key()
     if not openai_key and 'gpt' in selected_model['selected_model']:
         context['openai_key_error'] = True
+    print(context)
     return render(request, 'scanEngine/settings/llm_toolkit.html', context)
 
 

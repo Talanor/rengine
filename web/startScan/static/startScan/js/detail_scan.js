@@ -277,7 +277,7 @@ function get_subdomain_changes(scan_history_id) {
 				$('#subdomain_change_count').empty();
 				$("#subdomain_change_count").html(`<span class="badge badge-soft-primary me-1">${this.fnSettings().fnRecordsTotal()}</span>`);
 				$('.recon-changes-tab-show').removeAttr('style');
-				$('#subdomain_changes_alert').html(interpolate(`%(subDomainChangesCount)s Subdomain changes.`, {subDomainChangesCount: this.fnSettings().fnRecordsTotal()}), true);
+				$('#subdomain_changes_alert').html(interpolate(`%(subDomainChangesCount)s Subdomain changes.`, {subDomainChangesCount: this.fnSettings().fnRecordsTotal()}, true));
 			} else{
 				$('#recon_changes_subdomain_div').remove();
 			}

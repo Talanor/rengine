@@ -22,12 +22,16 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 environ.Env.read_env(os.path.join(BASE_DIR, os.pardir, '.env'))
 
 # Root env vars
-RENGINE_HOME = env('RENGINE_HOME', str(Path.home() / 'rengine'))
-RENGINE_RESULTS = env('RENGINE_RESULTS', str(Path.home() / 'scan_results'))
-RENGINE_CUSTOM_ENGINES = env('RENGINE_CUSTOM_ENGINES', str(Path.home() / 'custom_engines'))
-RENGINE_WORDLISTS = env('RENGINE_WORDLISTS', str(Path.home() / 'wordlists'))
-RENGINE_TOOL_PATH = env('RENGINE_TOOL_PATH', str(Path.home() / 'tools'))
-RENGINE_TOOL_GITHUB_PATH = env('RENGINE_TOOL_GITHUB_PATH', str(Path(RENGINE_TOOL_PATH) / '.github.com'))
+RENGINE_HOME = env('RENGINE_HOME', default=str(Path.home() / 'rengine'))
+RENGINE_RESULTS = env('RENGINE_RESULTS', default=str(Path.home() / 'scan_results'))
+RENGINE_CUSTOM_ENGINES = env('RENGINE_CUSTOM_ENGINES', default=str(Path.home() / 'custom_engines'))
+RENGINE_WORDLISTS = env('RENGINE_WORDLISTS', default=str(Path.home() / 'wordlists'))
+RENGINE_TOOL_PATH = env('RENGINE_TOOL_PATH', default=str(Path.home() / 'tools'))
+RENGINE_TOOL_GITHUB_PATH = env('RENGINE_TOOL_GITHUB_PATH', default=str(Path(RENGINE_TOOL_PATH) / '.github.com'))
+
+RENGINE_CACHE_ENABLED = env.bool('RENGINE_CACHE_ENABLED', default=False)
+RENGINE_RECORD_ENABLED = env.bool('RENGINE_RECORD_ENABLED', default=True)
+RENGINE_RAISE_ON_ERROR = env.bool('RENGINE_RAISE_ON_ERROR', default=False)
 
 # Common env vars
 DEBUG = env.bool('DEBUG', default=False)

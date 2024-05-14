@@ -1,5 +1,20 @@
 #!/bin/bash
 
+echo "INSERT INTO django_migrations (app, name, applied) SELECT 'users', '0001_initial', CURRENT_TIMESTAMP WHERE NOT EXISTS (SELECT app FROM django_migrations WHERE app = 'users' AND name = '0001_initial');" | python3 manage.py dbshell
+echo "UPDATE django_content_type SET app_label = 'users' WHERE app_label = 'auth' and model = 'user';" | python3 manage.py dbshell
+
+poetry run -C $HOME/ python3 manage.py migrate
+poetry run -C $HOME/ python3 manage.py collectstatic --no-input --clear
+
+# Load default engines, keywords, and external tools
+poetry run -C $HOME/ python3 manage.py loaddata fixtures/default_scan_engines.yaml --app scanEngine.EngineType
+poetry run -C $HOME/ python3 manage.py loaddata fixtures/default_keywords.yaml --app scanEngine.InterestingLookupModel
+poetry run -C $HOME/ python3 manage.py loaddata fixtures/external_tools.yaml --app scanEngine.InstalledExternalTool
+
+# Compile messages translations
+find . -type f -name "*.po" -exec sed -i 's/^#~ //g' {} +
+python3 manage.py compilemessages
+
 watchmedo auto-restart --recursive --pattern="*.py" --directory="/home/rengine/rengine/" -- poetry run -C $HOME/ celery -A reNgine.tasks worker --loglevel=info --autoscale=$MAX_CONCURRENCY,$MIN_CONCURRENCY -Q main_scan_queue &
 watchmedo auto-restart --recursive --pattern="*.py" --directory="/home/rengine/rengine/" -- poetry run -C $HOME/ celery -A reNgine.tasks worker --pool=gevent --concurrency=30 --loglevel=info -Q initiate_scan_queue -n initiate_scan_worker &
 watchmedo auto-restart --recursive --pattern="*.py" --directory="/home/rengine/rengine/" -- poetry run -C $HOME/ celery -A reNgine.tasks worker --pool=gevent --concurrency=30 --loglevel=info -Q subscan_queue -n subscan_worker &
