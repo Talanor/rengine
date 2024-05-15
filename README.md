@@ -2,7 +2,7 @@
 <a href="https://rengine.wiki"><img src=".github/screenshots/banner.gif" alt=""/></a>
 </p>
 
-<p align="center"><a href="https://github.com/yogeshojha/rengine/releases" target="_blank"><img src="https://img.shields.io/badge/version-v2.0.0-informational?&logo=none" alt="reNgine Latest Version" /></a>&nbsp;<a href="https://www.gnu.org/licenses/gpl-3.0" target="_blank"><img src="https://img.shields.io/badge/License-GPLv3-red.svg?&logo=none" alt="License" /></a>&nbsp;<a href="#" target="_blank"><img src="https://img.shields.io/badge/first--timers--only-friendly-blue.svg?&logo=none" alt="" /></a>&nbsp;<a href="https://huntr.dev/bounties/disclose/?target=https%3A%2F%2Fgithub.com%2Fyogeshojha%2Frengine" target="_blank"><img src="https://cdn.huntr.dev/huntr_security_badge_mono.svg" alt="" /></a>&nbsp;</p>
+<p align="center"><a href="https://github.com/talanor/rengine/releases" target="_blank"><img src="https://img.shields.io/badge/version-v2.0.0-informational?&logo=none" alt="reNgine Latest Version" /></a>&nbsp;<a href="https://www.gnu.org/licenses/gpl-3.0" target="_blank"><img src="https://img.shields.io/badge/License-GPLv3-red.svg?&logo=none" alt="License" /></a>&nbsp;<a href="#" target="_blank"><img src="https://img.shields.io/badge/first--timers--only-friendly-blue.svg?&logo=none" alt="" /></a>&nbsp;<a href="https://huntr.dev/bounties/disclose/?target=https%3A%2F%2Fgithub.com%2Fyogeshojha%2Frengine" target="_blank"><img src="https://cdn.huntr.dev/huntr_security_badge_mono.svg" alt="" /></a>&nbsp;</p>
 
 <p align="center">
   <a href="https://www.youtube.com/watch?v=Xk_YH83IQgg" target="_blank"><img src="https://img.shields.io/badge/BlackHat--Arsenal--Asia-2023-blue.svg?logo=none" alt="" /></a>&nbsp;
@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-<a href="https://github.com/yogeshojha/rengine/actions/workflows/codeql-analysis.yml" target="_blank"><img src="https://github.com/yogeshojha/rengine/actions/workflows/codeql-analysis.yml/badge.svg" alt="" /></a>&nbsp;<a href="https://github.com/yogeshojha/rengine/actions/workflows/build.yml" target="_blank"><img src="https://github.com/yogeshojha/rengine/actions/workflows/build.yml/badge.svg" alt="" /></a>&nbsp;
+<a href="https://github.com/talanor/rengine/actions/workflows/codeql-analysis.yml" target="_blank"><img src="https://github.com/talanor/rengine/actions/workflows/codeql-analysis.yml/badge.svg" alt="" /></a>&nbsp;<a href="https://github.com/talanor/rengine/actions/workflows/build.yml" target="_blank"><img src="https://github.com/talanor/rengine/actions/workflows/build.yml/badge.svg" alt="" /></a>&nbsp;
 </p>
 
 <p align="center">
@@ -26,6 +26,24 @@
 <a href="https://opensourcesecurityindex.io/" target="_blank" rel="noopener">
 <img style="width: 282px; height: 56px" src="https://opensourcesecurityindex.io/badge.svg" alt="Open Source Security Index - Fastest Growing Open Source Security Projects" width="282" height="56" /> </a>
 </p>
+<h3>FORK: Disclaimer & Fair warning</h3>
+<p align="left">This is a fork of the original rengine project : https://github.com/yogeshojha/rengine. I am not affiliated with the original author in any way.
+I needed a version of reNgine that supported various features, enhancement and fixes that could not be merged into the main repository in accordance to my schedule (which is fair and understandable).
+As a result, I will be maintaining this fork until I have presented it to some clients, and if they are interested in it, will continue to do so.
+Ideally, I'd like for the changes made here to be merged back into the original repository, and I will try to keep the fork up to date with it, but only time will tell if that's possible.
+
+If this repo gains traction (which I hope it does not), I will warn people if I ever drop support.
+For the next month or so, despite my best efforts, for production purposes, expect master to be unstable.
+
+After that, I intend on following this approac:
+- master: only for major releases, hotfixes for breaking bugs merged from hotfix/ branches
+- next: for stable new features and low priority bugfixes, merges into master every month-ish
+- feature branches: for bug fixes, enhancements, new features, etc. merge into next
+
+I'm not quite sure about versioning just yet, it is a pain to maintain, as seen with the original repository.
+
+I changed links from the original repo, as I don't want the author to be flooded with bugs that might(will) be introduced by this fork, but check it out, it's cool I swear :
+https://github.com/yogeshojha/rengine .</p>
 
 <h3>reNgine 2.0-jasper<br>Redefining the future of reconnaissance!</h3>
 
@@ -39,11 +57,11 @@ reNgine was created to address the limitations of traditional reconnaissance too
 
 reNgine 2.0-jasper is out now, you can [watch reNgine 2.0-jasper release trailer here!](https://youtu.be/VwkOWqiWW5g)
 
-reNgine 2.0-Jasper would not have been possible without [@ocervell](https://github.com/ocervell) valuable contributions. [@ocervell](https://github.com/ocervell) did the majority of the refactoring (if not all) and also added a ton of features. Together, we wish to shape the future of web application reconnaissance, and it's developers like [@ocervell](https://github.com/ocervell) and a [ton of other developers and hackers from our community](https://github.com/yogeshojha/rengine/graphs/contributors) who inspire and drive us forward.
+reNgine 2.0-Jasper would not have been possible without [@ocervell](https://github.com/ocervell) valuable contributions. [@ocervell](https://github.com/ocervell) did the majority of the refactoring (if not all) and also added a ton of features. Together, we wish to shape the future of web application reconnaissance, and it's developers like [@ocervell](https://github.com/ocervell) and a [ton of other developers and hackers from our community](https://github.com/talanor/rengine/graphs/contributors) who inspire and drive us forward.
 
 Thank you, [@ocervell](https://github.com/ocervell), for your outstanding work and unwavering commitment to reNgine.
 
-Checkout our contributors here: [Contributors](https://github.com/yogeshojha/rengine/graphs/contributors)
+Checkout our contributors here: [Contributors](https://github.com/talanor/rengine/graphs/contributors)
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)
 
@@ -104,7 +122,7 @@ reNgine is not an ordinary reconnaissance suite; it's a game-changer! We've turb
 
 ### Workflow
 
-<img src="https://github.com/yogeshojha/rengine/assets/17223002/10c475b8-b4a8-440d-9126-77fe2038a386">
+<img src="https://github.com/talanor/rengine/assets/17223002/10c475b8-b4a8-440d-9126-77fe2038a386">
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)
 
@@ -315,7 +333,7 @@ screenshot: {
 1. Clone this repo
 
     ```bash
-    git clone https://github.com/yogeshojha/rengine && cd rengine
+    git clone https://github.com/talanor/rengine && cd rengine
     ```
 
 1. Edit the `.env` file, **please make sure to change the password for postgresql `POSTGRES_PASSWORD`!**
@@ -495,7 +513,7 @@ Happy issuing ;)
 
 Please note that reNgine is beginner-friendly. If you have never done open-source before, we encourage you to do so. **We will be happy and proud of your first PR ever.**
 
-You can start by resolving any [open issues](https://github.com/yogeshojha/rengine/issues).
+You can start by resolving any [open issues](https://github.com/talanor/rengine/issues).
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/aqua.png)
 
@@ -515,7 +533,7 @@ Over the past few years, I have been working hard on reNgine to add new features
 
 OR
 
-* Add a [GitHub Star](https://github.com/yogeshojha/rengine) to the project.
+* Add a [GitHub Star](https://github.com/talanor/rengine) to the project.
 * Tweet about this project, or maybe blogs?
 * Maybe nominate me for [GitHub Stars?](https://stars.github.com/nominate/)
 * Join DigitalOcean using my [referral link](https://m.do.co/c/e353502d19fc) your profit is **$100** and I get $25 DO credit. This will help me test reNgine on VPS before I release any major features.
